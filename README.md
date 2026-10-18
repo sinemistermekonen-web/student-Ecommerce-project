@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Campus Tech Store
+
+An online student electronics store built with **Next.js 16**, **React 19**, and **TypeScript**. This project demonstrates a complete shopping journey — from browsing products to submitting a delivery order — without any payment processing.
+
+**Audience:** Our store helps _students_ find and buy _practical electronics and accessories for campus life_.
+
+---
+
+## Features
+
+- **Home page** with hero section and featured products
+- **Product catalogue** with category filters and price sorting
+- **Product detail pages** with description, availability, and add-to-cart
+- **Shopping cart** with quantity controls, line totals, and subtotal
+- **Checkout form** with validation (no payment step)
+- **Order confirmation** with order reference and summary
+- **Responsive design** for mobile, tablet, and desktop
+- **Accessible UI** with semantic HTML, keyboard navigation, and ARIA labels
+
+## Tech Stack
+
+| Tool | Purpose |
+|---|---|
+| Next.js 16 | Framework (App Router, Server + Client Components) |
+| React 19 | UI library |
+| TypeScript | Type safety |
+| CSS (vanilla) | Styling with custom properties |
+| `next/font` | Google Fonts (Inter) loaded without external requests |
+| `next/image` | Optimised image rendering |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/sinemistermekonen-web/student-Ecommerce-project.git
+cd student-Ecommerce-project
+
+# Install dependencies
+npm install
+
+# Copy environment example (if applicable)
+cp .env.example .env.local
+```
+
+### Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    page.tsx                  # Home
+    products/page.tsx         # Catalogue
+    products/[id]/page.tsx    # Product detail
+    cart/page.tsx              # Shopping cart
+    checkout/page.tsx          # Order form
+    order-success/page.tsx     # Confirmation
+    layout.tsx                 # Root layout (Header + Footer + Providers)
+    globals.css                # Design tokens and all styles
+  components/
+    header.tsx                 # Navigation with cart badge
+    Footer.tsx                 # Site footer
+    productCard.tsx            # Reusable product card (Server Component)
+    productList.tsx            # Catalogue with filter/sort (Client Component)
+    AddtoCartbutton.tsx        # Add-to-cart with feedback (Client Component)
+    providers.tsx              # CartProvider wrapper (Client Component)
+  context/
+    cartContext.tsx             # Cart state (React Context + localStorage)
+  data/
+    products.ts                # Shared product data (10 products)
+  lib/
+    currency.ts                # ETB price formatter
+  types/
+    product.ts                 # Product type definition
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Shopping Journey
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+Home → Catalogue → Product Detail → Cart → Checkout → Order Confirmation
+```
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+See [`.env.example`](.env.example) for the variable names. No real secrets are committed.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `NEXT_PUBLIC_` variables are exposed to the browser — never place private keys there.
+
+## Scope
+
+This project **does not** include payment processing. No card numbers, bank details, or payment credentials are collected. The order flow ends with a delivery form and confirmation page.
+
+## License
+
+Student project — IBT College CodeOps.

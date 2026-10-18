@@ -6,6 +6,12 @@ import { products } from "@/data/products";
 import { formatPrice } from "@/lib/currency";
 import AddToCartButton from "@/components/AddtoCartbutton";
 
+export function generateStaticParams() {
+  return products.map((product) => ({
+    id: product.id,
+  }));
+}
+
 type ProductDetailsPageProps = {
   params: Promise<{ id: string }>;
 };
