@@ -1,9 +1,16 @@
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { Inter } from "next/font/google";
 import Header from "@/components/header";
 import Footer from "@/components/Footer";
 import Providers from "@/components/providers";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Campus Tech | Student Electronics Store",
@@ -17,8 +24,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={inter.className}>
+      <body>
+        <Suspense>
+          <Providers>
+            <Header />
+            {children}
+            <Footer />
+          </Providers>
+        </Suspense>
+      </body>
     </html>
   );
 }
+

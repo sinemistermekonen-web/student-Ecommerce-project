@@ -1,7 +1,12 @@
 
+"use client";
+
 import Link from "next/link";
+import { useCart } from "@/context/cartContext";
 
 export default function Header() {
+  const { itemCount } = useCart();
+
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -13,7 +18,14 @@ export default function Header() {
         <nav className="main-nav" aria-label="Main navigation">
           <Link href="/">Home</Link>
           <Link href="/products">Products</Link>
-          <Link href="/cart">Cart</Link>
+          <Link href="/cart" className="cart-link">
+            Cart
+            {itemCount > 0 && (
+              <span className="cart-badge" aria-label={`${itemCount} items in cart`}>
+                {itemCount}
+              </span>
+            )}
+          </Link>
         </nav>
       </div>
     </header>
