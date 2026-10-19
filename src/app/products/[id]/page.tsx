@@ -40,7 +40,7 @@ export default async function ProductDetailsPage({
             alt={product.name}
             fill
             sizes="(max-width: 700px) 100vw, 50vw"
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "cover" }}
           />
         </div>
 

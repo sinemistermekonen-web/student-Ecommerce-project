@@ -22,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             sizes="(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 25vw"
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "cover" }}
           />
         </div>
       </Link>

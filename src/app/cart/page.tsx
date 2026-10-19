@@ -43,7 +43,7 @@ export default function CartPage() {
                   alt={item.product.name}
                   fill
                   sizes="100px"
-                  style={{ objectFit: "contain" }}
+                  style={{ objectFit: "cover" }}
                 />
               </div>
 
