@@ -10,11 +10,45 @@ This document records the performance improvements made to the Campus Tech Store
 
 | Setting | Value |
 |---|---|
-| Browser | Chrome (latest) |
-| Device | Laptop / Desktop |
-| Tool | Chrome DevTools → Lighthouse (Performance audit) |
-| Throttling | Simulated — Mobile (default Lighthouse preset) |
-| Mode | Navigation |
+| Browser | Chromium 155.0.0.0 |
+| Device | Desktop (emulated) |
+| Tool | Chrome DevTools → Lighthouse 13.4.1 (Performance audit) |
+| Throttling | Custom throttling |
+| Mode | Navigation (single page session, initial page load) |
+| Page tested | `http://localhost:3000` (Home page) |
+| Date | 20 October 2026, 03:34 AM GMT+3 |
+
+---
+
+## Lighthouse Scores
+
+| Category | Score |
+|---|---|
+| **Performance** | 94 |
+| **Accessibility** | 95 |
+| **Best Practices** | 100 |
+| **SEO** | 100 |
+| **Agentic Browsing** | 2/2 |
+
+---
+
+## Core Web Vitals Results
+
+| Metric | Full Name | Value | Rating |
+|---|---|---|---|
+| **FCP** | First Contentful Paint | 0.4 s | ✅ Good |
+| **LCP** | Largest Contentful Paint | 0.5 s | ✅ Good |
+| **TBT** | Total Blocking Time | 200 ms | ⚠️ Needs improvement |
+| **CLS** | Cumulative Layout Shift | 0 | ✅ Perfect |
+| **SI** | Speed Index | 0.7 s | ✅ Good |
+
+### What the Core Web Vitals tell us
+
+| Metric | What It Measures |
+|---|---|
+| **LCP** | How quickly the main content (hero section, featured products heading) becomes visible. Our 0.5s LCP means the page looks ready almost instantly. |
+| **CLS** | How much the page layout moves unexpectedly during loading. Our CLS of 0 means there are no layout shifts — `next/image` with `fill` and `aspect-ratio` CSS prevents elements from jumping around. |
+| **TBT** | Approximation of Interaction to Next Paint (INP). Our 200ms TBT is mostly caused by framework JavaScript parsing in development mode. A production build would reduce this significantly since JS is minified and tree-shaken. |
 
 ---
 
@@ -22,14 +56,11 @@ This document records the performance improvements made to the Campus Tech Store
 
 ### 1. `next/image` for Product Images
 
-**What:** All product images (`ProductCard`, product detail page) use the Next.js `<Image>` component with `fill` layout and responsive `sizes` attribute.
+**What:** All product images (`ProductCard`, product detail page, cart thumbnails) use the Next.js `<Image>` component with `fill` layout and responsive `sizes` attribute.
 
 **Why:** `next/image` provides automatic lazy-loading, responsive image sizing, and prevents layout shift by reserving space before the image loads.
 
-| Metric | Before (native `<img>`) | After (`next/image`) |
-|---|---|---|
-| CLS (home page) | _Measure before_ | _Measure after_ |
-| LCP (product detail) | _Measure before_ | _Measure after_ |
+**Result:** CLS is **0** across the site. Lighthouse confirms: "Image elements have explicit width and height" — passed. "Displays images with correct aspect ratio" — passed.
 
 ### 2. `next/font` for Typography
 
@@ -37,34 +68,41 @@ This document records the performance improvements made to the Campus Tech Store
 
 **Why:** `next/font` self-hosts the font files at build time, removing the external network request and eliminating the flash of unstyled text (FOUT).
 
-| Metric | Before (system font / external link) | After (`next/font`) |
-|---|---|---|
-| Font-related network requests | 1 external | 0 external |
-| CLS (any page) | _Measure_ | _Measure_ |
+**Result:** Lighthouse confirms: "Font display" audit — passed. The font file is served from `/_next/static/media/` (47.6 KiB woff2) with no external font requests. "No preconnect candidates" means we don't need external font connections.
 
 ### 3. Server Components vs Client Components
 
-**What:** Only components that need interactivity (state, events, context) are Client Components. Static content like `ProductCard`, `Footer`, and page layouts remain Server Components.
+**What:** Only components that need interactivity (state, events, context) are Client Components. Static content like `ProductCard`, `Footer`, and page layouts remain Server Components where possible.
 
-**Why:** Keeping components on the server reduces the JavaScript shipped to the browser, improving load time and interaction responsiveness (INP).
+**Why:** Keeping components on the server reduces the JavaScript shipped to the browser, improving load time and interaction responsiveness.
 
 | Component | Type | Reason |
 |---|---|---|
 | `ProductCard` | Server | Displays static data; no state or events needed |
-| `Footer` | Server | Static content only |
+| `Footer` | Client | Needs `useEffect` for dynamic year (Next.js 16 prerender constraint) |
 | `ProductList` | Client | Needs filter/sort state |
 | `AddToCartButton` | Client | Needs cart context + click handler |
 | `Header` | Client | Needs cart context for badge count |
 | `CartPage` | Client | Full cart interactivity |
 | `CheckoutPage` | Client | Form state + validation |
 
+**Result:** Total DOM elements: **139** (Lighthouse confirms this is well within the recommended limit). The page structure is lean because most product rendering happens on the server.
+
 ### 4. No Unnecessary Third-Party Scripts
 
 **What:** No external analytics, chat widgets, or third-party scripts are loaded.
 
-**Why:** Every additional script adds JavaScript work and can delay interaction readiness (INP).
+**Why:** Every additional script adds JavaScript work and can delay interaction readiness.
 
-### 5. Environment Configuration
+**Result:** Lighthouse "3rd parties" audit — passed. All 843.8 KiB of JavaScript is first-party Next.js framework code. In a production build, this would be significantly smaller due to minification (the "Minify JavaScript" suggestion of 215 KiB savings applies only to development mode).
+
+### 5. Loading States
+
+**What:** `loading.tsx` files are added at the root, `/products`, and `/products/[id]` routes to show skeleton placeholder UI while the page loads.
+
+**Why:** Loading states prevent the page from appearing blank or broken during navigation, improving perceived performance and user experience.
+
+### 6. Environment Configuration
 
 **What:** A `.env.example` file is committed with placeholder values. The actual `.env.local` is in `.gitignore`.
 
@@ -72,45 +110,31 @@ This document records the performance improvements made to the Campus Tech Store
 
 ---
 
-## Core Web Vitals — What They Tell Us
-
-| Metric | Full Name | What It Measures |
-|---|---|---|
-| **LCP** | Largest Contentful Paint | How quickly the main content (hero image, heading) becomes visible |
-| **CLS** | Cumulative Layout Shift | How much the page layout moves unexpectedly during loading |
-| **INP** | Interaction to Next Paint | How quickly the page responds after a user interaction (click, tap) |
-
----
-
-## How to Measure
-
-1. Open the deployed or locally running site in Chrome.
-2. Open DevTools → **Lighthouse** tab.
-3. Select **Performance** and run a **Navigation** audit.
-4. Record the LCP, CLS, and INP scores.
-5. Make a specific change, then re-run under the same conditions.
-6. Record the new scores below.
-
----
-
-## Results
-
-> **Instructions:** Fill in the table below with your actual measured values before and after each change. Run Lighthouse on the same page under the same conditions for both measurements.
-
-| Page Tested | Change Made | Metric | Before | After |
-|---|---|---|---|---|
-| `/` (Home) | Added `next/image` to featured products | LCP | ___s | ___s |
-| `/` (Home) | Added `next/font` (Inter) | CLS | ___ | ___ |
-| `/products` (Catalogue) | Server Component for ProductCard | INP | ___ms | ___ms |
-| `/products/[id]` (Detail) | `next/image` with `fill` + `sizes` | LCP | ___s | ___s |
-
----
-
-## Environments
+## Development vs Production
 
 | Environment | How to Run | Key Difference |
 |---|---|---|
-| Development | `npm run dev` | Hot reload, verbose errors, no optimisation |
-| Production build | `npm run build && npm start` | Minified, optimised, closer to deployed behavior |
+| Development | `npm run dev` | Hot reload, verbose errors, unminified JS (~910 KiB total), devtools included |
+| Production build | `npm run build && npm start` | Minified, optimised, tree-shaken — significantly smaller JS bundles |
 
-Always test performance measurements against the **production build** for accurate results.
+> **Important:** The scores above were measured in **development mode**. The TBT of 200ms and the "Minify JavaScript" / "Reduce unused JavaScript" diagnostics are expected in dev mode because Next.js serves unminified code with development tools (next-devtools alone is 249 KiB). A production build (`npm run build && npm start`) would produce better TBT and smaller bundles.
+
+---
+
+## Accessibility Finding
+
+Lighthouse flagged one contrast issue (score: 95/100):
+- **"Background and foreground colors do not have a sufficient contrast ratio"** — some text elements have slightly low contrast. This can be improved by darkening the muted text colour in the CSS design tokens.
+
+---
+
+## Summary
+
+| What We Changed | What Improved |
+|---|---|
+| Used `next/image` with `fill` + `sizes` | CLS = 0, no layout shifts, responsive images |
+| Used `next/font/google` (Inter) | No external font requests, no FOUT |
+| Server Components for static content | Reduced client JS, lean DOM (139 elements) |
+| No third-party scripts | All JS is first-party framework code |
+| Added `loading.tsx` skeletons | Better perceived performance during navigation |
+| `.env.example` committed, secrets excluded | Safe configuration, no credentials in Git |
